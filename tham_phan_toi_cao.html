@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111d2a">
+<title>Thẩm Phán Tối Cao — Phán Quyết Của Bạn</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --canvas: light-dark(#f3f1eb, #0b121b);
+  --surface: light-dark(#ffffff, #111d2a);
+  --surface-soft: light-dark(#f8f7f3, #172535);
+  --ink: light-dark(#202b35, #f1efe8);
+  --muted: light-dark(#66717b, #a7b3bf);
+  --line: light-dark(#ddd9cf, #2b3b4d);
+  --gold: #c4a15b;
+  --gold-dark: light-dark(#876b31, #e0bf76);
+  --teal: light-dark(#17675e, #58c6b6);
+  --red: light-dark(#a8423e, #ff8d83);
+  --shadow: 0 16px 40px rgba(0,0,0,.12);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+#app-root { min-height: 100vh; background: var(--canvas); border-radius: 0; }
+.topbar { color: #f7f4ed; background: #111d2a; border-bottom: 1px solid rgba(196,161,91,.4); }
+.topbar-inner { max-width: 1440px; margin: auto; padding: 22px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.brand { display:flex; align-items:center; gap:15px; }
+.seal { width:52px; height:52px; border:1px solid var(--gold); color:#e5c784; border-radius:50%; display:grid; place-items:center; font-size:25px; position:relative; flex-shrink:0; }
+.seal:after { content:""; position:absolute; inset:5px; border:1px solid rgba(229,199,132,.45); border-radius:50%; }
+.kicker { font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:#d4b975; margin-bottom:4px; }
+h1 { margin:0; font-family: Georgia, "Times New Roman", serif; letter-spacing:.035em; line-height:1.1; font-size:clamp(20px, 2.4vw, 30px); font-weight:600; }
+.subtitle { color:#aebac6; font-size:12px; margin-top:7px; }
+.top-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
+.pill { display:inline-flex; align-items:center; gap:7px; border:1px solid #425264; border-radius:99px; padding:7px 11px; color:#dce4eb; font-size:11px; white-space:nowrap; }
+.pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background:#6ed3ae; box-shadow:0 0 0 3px rgba(110,211,174,.12); }
+.page { max-width:1440px; margin:auto; padding:24px 28px 38px; }
+.notice { background:light-dark(#fff9e8,#2a261c); color:light-dark(#6c5425,#e6d7ad); border:1px solid light-dark(#eadab3,#554628); border-radius:12px; padding:12px 15px; font-size:12px; line-height:1.55; margin-bottom:20px; }
+.layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:22px; align-items:start; }
+.sidebar { display:flex; flex-direction:column; gap:14px; position:sticky; top:16px; }
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:15px; box-shadow:var(--shadow); overflow:hidden; }
+.panel-head { padding:16px 18px; border-bottom:1px solid var(--line); background:var(--surface-soft); }
+.panel-head h2,.panel-head h3 { margin:0; font-size:13px; letter-spacing:.05em; text-transform:uppercase; }
+.panel-body { padding:17px 18px; }
+.step-list { display:flex; flex-direction:column; gap:7px; }
+.step { display:flex; gap:11px; padding:12px 11px; border-radius:10px; color:var(--muted); border:1px solid transparent; transition:.15s; }
+.step.current { background:light-dark(#f8f1df,#292719); border-color:light-dark(#e8d7ad,#65512b); color:var(--ink); }
+.step.done .step-num { background:var(--teal); color:#fff; border-color:transparent; }
+.step-num { flex-shrink:0; width:31px; height:31px; border:1px solid var(--line); border-radius:9px; display:grid; place-items:center; font-size:11px; font-weight:800; }
+.step-title { font-size:12px; font-weight:750; margin:2px 0 4px; }
+.step-desc { font-size:10px; line-height:1.45; color:var(--muted); }
+.score-mini { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.score-mini > div { border:1px solid var(--line); border-radius:10px; padding:11px; }
+.score-label { font-size:10px; color:var(--muted); }
+.score-num { font-size:21px; font-weight:800; margin-top:5px; font-variant-numeric:tabular-nums; }
+.score-mini .score-num { color:var(--gold-dark); }
+.small-note { font-size:11px; color:var(--muted); line-height:1.55; }
+.link-list { display:flex; flex-direction:column; gap:9px; }
+.link-list a { color:var(--gold-dark); font-size:11px; line-height:1.5; text-decoration:none; border-bottom:1px dashed var(--line); padding-bottom:8px; }
+.link-list a:hover { text-decoration:underline; }
+.main { min-width:0; display:flex; flex-direction:column; gap:18px; }
+.docket { padding:21px 23px; background:var(--surface); border:1px solid var(--line); border-radius:15px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.docket:after { content:""; position:absolute; width:175px; height:175px; border:1px solid rgba(196,161,91,.13); border-radius:50%; right:-75px; top:-76px; box-shadow:0 0 0 15px rgba(196,161,91,.035), 0 0 0 32px rgba(196,161,91,.025); pointer-events:none; }
+.docket-top { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; position:relative; z-index:1; }
+.eyebrow { text-transform:uppercase; letter-spacing:.16em; font-size:10px; color:var(--gold-dark); font-weight:800; }
+.case-title { font-family:Georgia, "Times New Roman", serif; font-size:clamp(23px,3vw,35px); margin:7px 0 9px; line-height:1.14; }
+.case-id { color:var(--muted); font-size:11px; }
+.case-stamp { border:1px solid var(--gold); color:var(--gold-dark); padding:10px 12px; text-align:center; font-size:10px; letter-spacing:.13em; transform:rotate(2deg); border-radius:4px; font-weight:800; flex-shrink:0; }
+.case-stamp strong { display:block; font-size:17px; margin-top:3px; letter-spacing:.05em; }
+.case-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:20px; }
+.meta-card { border:1px solid var(--line); border-radius:10px; padding:11px 12px; background:var(--surface-soft); min-width:0; }
+.meta-label { color:var(--muted); text-transform:uppercase; letter-spacing:.07em; font-size:9px; margin-bottom:6px; }
+.meta-value { font-size:12px; font-weight:700; line-height:1.45; overflow-wrap:anywhere; }
+.section-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 13px; font-size:14px; }
+.section-title span { font-size:10px; color:var(--muted); font-weight:500; }
+.summary-text { font-size:13px; line-height:1.75; }
+.evidence-list { display:flex; flex-direction:column; gap:9px; }
+.evidence-item { display:flex; gap:10px; padding:10px 11px; background:var(--surface-soft); border:1px solid var(--line); border-radius:9px; font-size:12px; line-height:1.55; }
+.evidence-index { background:light-dark(#e8e1d2,#344353); width:25px; height:25px; display:grid; place-items:center; border-radius:7px; flex-shrink:0; color:var(--gold-dark); font-weight:800; font-size:10px; }
+.role-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.role-card { border:1px solid var(--line); padding:12px; border-radius:10px; background:var(--surface-soft); min-width:0; }
+.role-icon { font-size:18px; }
+.role-name { font-size:11px; font-weight:800; margin:6px 0 3px; }
+.role-desc { color:var(--muted); font-size:10px; line-height:1.5; }
+.control-panel { background:var(--surface); border:1px solid var(--line); border-radius:15px; overflow:hidden; box-shadow:var(--shadow); }
+.phase-header { padding:19px 22px; background:#172738; color:#f3f1eb; display:flex; align-items:center; justify-content:space-between; gap:15px; }
+.phase-header .phase-kicker { font-size:10px; color:#d2b36f; letter-spacing:.17em; text-transform:uppercase; }
+.phase-header h2 { font-family:Georgia,serif; font-size:24px; font-weight:500; margin:4px 0 0; }
+.phase-count { border:1px solid #516274; padding:8px 11px; border-radius:7px; font-size:11px; white-space:nowrap; }
+.phase-content { padding:21px 22px; }
+.field { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+.field label { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.03em; }
+.field input,.field textarea,.field select { width:100%; border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); color:var(--ink); padding:12px 13px; outline:none; }
+.field textarea { min-height:104px; resize:vertical; line-height:1.6; }
+.field input:focus,.field textarea:focus,.field select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(196,161,91,.15); }
+.field-help { font-size:10px; color:var(--muted); line-height:1.5; }
+.button-row { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
+.btn { border-radius:9px; border:1px solid var(--line); background:var(--surface-soft); color:var(--ink); padding:11px 14px; font-size:11px; font-weight:800; transition:transform .12s,filter .12s; }
+.btn:hover { filter:brightness(1.05); transform:translateY(-1px); }
+.btn.primary { color:#171d23; border-color:#c4a15b; background:linear-gradient(135deg,#dfc47f,#b78d44); }
+.btn.dark { background:#203449; border-color:#344f69; color:#f8f6f0; }
+.btn.danger { color:var(--red); border-color:light-dark(#ebc9c5,#6e3533); }
+.btn:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+.divider { border:0; border-top:1px solid var(--line); margin:21px 0; }
+.clerk-box { background:var(--surface-soft); border-left:3px solid var(--gold); border-radius:0 9px 9px 0; padding:14px 15px; font-size:12px; line-height:1.8; margin-bottom:16px; }
+.transcript { display:flex; flex-direction:column; gap:11px; max-height:470px; overflow:auto; padding:12px; background:var(--surface-soft); border:1px solid var(--line); border-radius:11px; }
+.transcript-entry { border-left:3px solid var(--line); padding:7px 11px 8px; font-size:12px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
+.transcript-entry.judge { border-color:var(--gold); }
+.transcript-entry.accused { border-color:#c77773; }
+.transcript-entry.prosecution { border-color:#558fc2; }
+.transcript-entry.defense { border-color:#56a992; }
+.transcript-entry.system { border-color:var(--muted); }
+.transcript-speaker { font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.07em; margin-bottom:3px; color:var(--muted); }
+.empty-state { text-align:center; padding:23px 15px; color:var(--muted); font-size:12px; line-height:1.6; }
+.step-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--line); background:var(--surface-soft); padding:15px 22px; }
+.footer-help { color:var(--muted); font-size:10px; line-height:1.5; }
+.action-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:15px; }
+.action-card { border:1px solid var(--line); border-radius:11px; padding:14px; background:var(--surface-soft); }
+.action-card h4 { font-size:12px; margin:0 0 6px; }
+.action-card p { color:var(--muted); font-size:10px; line-height:1.55; min-height:32px; margin:0 0 12px; }
+.action-card .btn { width:100%; }
+.verdict-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.form-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.form-row.triple { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.result-top { background:#172738; color:#fff; padding:23px; border-radius:14px 14px 0 0; }
+.result-title { font-family:Georgia,serif; font-size:26px; margin:6px 0 5px; }
+.result-sub { font-size:11px; color:#b6c5d3; line-height:1.6; }
+.result-body { padding:21px; }
+.result-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.metric { border:1px solid var(--line); border-radius:11px; padding:14px; }
+.metric-value { font-size:28px; font-weight:850; margin:8px 0 4px; color:var(--gold-dark); }
+.metric-label { font-size:11px; font-weight:800; }
+.metric-desc { font-size:10px; line-height:1.5; color:var(--muted); margin-top:5px; }
+.meter { height:6px; background:var(--line); border-radius:10px; overflow:hidden; margin-top:10px; }
+.meter > span { display:block; height:100%; border-radius:10px; background:var(--gold); }
+.assessment { margin-top:18px; padding:15px; border:1px solid var(--line); border-radius:10px; font-size:12px; line-height:1.7; }
+.hidden-facts { display:none; margin-top:14px; border:1px dashed var(--gold); border-radius:10px; padding:14px; background:var(--surface-soft); }
+.hidden-facts.open { display:block; }
+.hidden-facts h4 { margin:0 0 8px; font-size:12px; }
+.hidden-facts p { font-size:12px; line-height:1.7; margin:6px 0; }
+.toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#172738; color:#fff; padding:12px 16px; border-radius:10px; box-shadow:var(--shadow); font-size:12px; z-index:99; display:none; max-width:calc(100vw - 30px); }
+.toast.show { display:block; }
+.bottomline { text-align:center; color:var(--muted); font-size:10px; margin:24px 0 0; line-height:1.7; }
+@media(max-width:980px) { .layout { grid-template-columns:220px minmax(0,1fr); gap:15px; } .page { padding:17px; } .topbar-inner { padding:18px 17px; } .role-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:700px) { .topbar-inner { align-items:flex-start; flex-direction:column; } .top-actions { justify-content:flex-start; } .layout { grid-template-columns:1fr; } .sidebar { position:static; } .step-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .sidebar .panel.links-panel { display:none; } .case-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .role-grid,.action-grid { grid-template-columns:1fr; } .phase-header { padding:16px; } .phase-content { padding:16px; } .step-footer { padding:13px 16px; align-items:flex-start; flex-direction:column; } .docket { padding:17px; } .case-stamp { display:none; } .result-metrics { grid-template-columns:1fr; } .verdict-grid,.form-row,.form-row.triple { grid-template-columns:1fr; } .action-card p { min-height:0; } }
+@media(prefers-reduced-motion:reduce) { *,*:before,*:after { transition:none !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+<div id="app-root">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="seal" aria-hidden="true">⚖</div>
+        <div>
+          <div class="kicker">Phòng xử án mô phỏng</div>
+          <h1>THẨM PHÁN TỐI CAO</h1>
+          <div class="subtitle">PHÁN QUYẾT CỦA BẠN · RPG tư pháp ngoại tuyến</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="pill"><span class="pulse"></span> Chạy ngoại tuyến</span>
+        <span class="pill" id="top-case-number">HỒ SƠ #001</span>
+        <button class="btn" id="export-btn" type="button">Xuất biên bản</button>
+      </div>
+    </div>
+  </header>
+  <main class="page">
+    <div class="notice"><strong>Lưu ý mô phỏng:</strong> Đây là game học tập, không phải hệ thống Tòa án thật hay tư vấn pháp lý. Nhân vật phản hồi bằng kịch bản và từ khóa chạy ngay trong file, không kết nối AI/Internet. Điểm số là đánh giá nội bộ của trò chơi, không phải kết luận pháp lý có giá trị thực tế.</div>
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-head"><h2>Tiến trình phiên tòa</h2></div>
+          <div class="panel-body"><div id="step-list" class="step-list"></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h3>Hồ sơ thẩm phán</h3></div>
+          <div class="panel-body">
+            <div class="score-mini">
+              <div><div class="score-label">Uy tín</div><div class="score-num" id="trust-score">100</div></div>
+              <div><div class="score-label">Đã xét xử</div><div class="score-num" id="cases-count">0</div></div>
+            </div>
+            <p class="small-note" style="margin:12px 0 0">Uy tín được lưu trên trình duyệt này. Cân nhắc chứng cứ, sự nghi ngờ hợp lý và quyền của các bên.</p>
+          </div>
+        </section>
+        <section class="panel links-panel">
+          <div class="panel-head"><h3>Nguồn luật tham khảo</h3></div>
+          <div class="panel-body">
+            <div class="link-list">
+              <a href="https://vanban.chinhphu.vn/?docid=214557&pageid=27160&typegroupid=3" target="_blank" rel="noopener">Luật 99/2025/QH15 — sửa đổi Bộ luật Tố tụng hình sự</a>
+              <a href="https://vbpl.moj.gov.vn/bocongan/Pages/vbpq-toanvan.aspx?ItemID=179251&Keyword=" target="_blank" rel="noopener">Luật 86/2025/QH15 — sửa đổi Bộ luật Hình sự</a>
+              <a href="https://congbao.chinhphu.vn/van-ban/luat-so-101-2015-qh13-18457/28633.htm" target="_blank" rel="noopener">Bộ luật Tố tụng hình sự 2015 (văn bản gốc)</a>
+            </div>
+            <p class="small-note" style="margin-bottom:0">Văn bản và điều luật cần được đối chiếu theo tình tiết cụ thể và bản đang có hiệu lực.</p>
+          </div>
+        </section>
+      </aside>
+      <div class="main">
+        <section class="docket" id="case-docket"></section>
+        <section class="panel">
+          <div class="panel-head"><h2>Tóm tắt hồ sơ & chứng cứ đã công bố</h2></div>
+          <div class="panel-body">
+            <div class="summary-text" id="case-summary"></div>
+            <hr class="divider">
+            <h3 class="section-title">Tài liệu, chứng cứ <span id="evidence-count"></span></h3>
+            <div class="evidence-list" id="evidence-list"></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>Thành phần tham gia phiên tòa</h2></div>
+          <div class="panel-body"><div id="role-grid" class="role-grid"></div></div>
+        </section>
+        <section class="control-panel" id="phase-panel"></section>
+        <section class="control-panel" id="transcript-panel">
+          <div class="panel-head"><h2>Biên bản diễn biến phiên tòa</h2></div>
+          <div class="panel-body"><div class="transcript" id="transcript" aria-live="polite"></div></div>
+          <div class="step-footer"><div class="footer-help">Biên bản ở trên được tạo trên thiết bị này. Dùng nút “Xuất biên bản” để lưu thành tệp văn bản.</div><button class="btn" id="clear-log-btn" type="button">Xóa nội dung biên bản</button></div>
+        </section>
+      </div>
+    </div>
+    <div class="bottomline">THẨM PHÁN TỐI CAO · Bản chơi độc lập · Không gửi dữ liệu ra ngoài trình duyệt</div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+  'use strict';
+  const STORE = 'thamphan-toicao-save-v1';
+  const namesA = ['Nguyễn','Trần','Lê','Phạm','Hoàng','Huỳnh','Võ','Đặng','Bùi','Đỗ','Phan','Vũ','Dương','Lý','Mai'];
+  const namesB = ['Minh','Quốc','Gia','Thanh','Hữu','Đức','Anh','Khánh','Tuấn','Hải','Ngọc','Thành','Hoài','Phúc','Bảo','Nhật','Thảo','Quỳnh','Trọng','Kim'];
+  const namesC = ['An','Bình','Châu','Dũng','Hà','Hạnh','Hiếu','Khang','Linh','Long','Mai','Nam','Nga','Phong','Sơn','Tâm','Thư','Trang','Vy','Yến'];
+  const places = ['một cửa hàng điện tử ở trung tâm thành phố','bãi giữ xe của khu chung cư','một quán cà phê gần bến xe','khu nhà trọ trên đường Nguyễn Trãi','văn phòng dịch vụ nhỏ trong khu dân cư','sảnh một trung tâm thương mại','một cửa tiệm nằm cạnh chợ','bãi xe của tòa nhà văn phòng'];
+  const times = ['khoảng 18 giờ 20 phút ngày 12 tháng 3','khoảng 20 giờ 05 phút ngày 4 tháng 5','khoảng 16 giờ 40 phút ngày 21 tháng 6','khoảng 19 giờ 15 phút ngày 8 tháng 8','khoảng 13 giờ 30 phút ngày 17 tháng 9','khoảng 21 giờ 10 phút ngày 2 tháng 11'];
+  const personality = ['trả lời cẩn trọng và hay yêu cầu nhắc lại câu hỏi','có vẻ căng thẳng, thường dừng lại suy nghĩ trước khi đáp','giữ thái độ bình tĩnh nhưng khá phòng thủ','nói nhanh, đôi lúc tự mâu thuẫn ở chi tiết nhỏ','thẳng thắn, sẵn sàng thừa nhận điều mình không biết','dễ xúc động khi nhắc đến hậu quả của sự việc'];
+  const titleVariants = {
+    theft:['Chiếc điện thoại biến mất','Camera mờ ở quầy thanh toán','Vật chứng sau giờ cao điểm','Một lần ghé cửa tiệm'],
+    fraud:['Khoản đặt cọc không trở lại','Tin nhắn hẹn giao hàng','Giao dịch chưa hoàn tất','Lời hứa bán máy tính'],
+    injury:['Cuộc cãi vã ở bãi xe','Hai lời khai về một va chạm','Thương tích sau cuộc tranh cãi','Khoảnh khắc ngoài góc camera'],
+    traffic:['Va chạm tại ngã tư','Tín hiệu đèn chưa rõ','Vết phanh ở giao lộ','Ai có lỗi trong vụ va chạm'],
+    damage:['Cánh cửa bị phá hỏng','Thiệt hại sau tranh chấp thuê mặt bằng','Người rời khỏi cửa tiệm','Dấu vết trong đêm'],
+    trust:['Khoản tiền được giao quản lý','Dòng tiền chưa đối soát','Biên nhận và khoản thanh toán','Trách nhiệm quyết toán']
+  };
+  const templates = [
+    {key:'theft', title:'Chiếc điện thoại biến mất', charge:'Trộm cắp tài sản', article:'Điều 173 BLHS', amount:8600000, amountText:'8,6 triệu đồng', minSentence:0.3, maxSentence:1.5,
+     summary:'Một chiếc điện thoại của người mua hàng biến mất trong khoảng thời gian cửa tiệm đông khách. Bị cáo có mặt ở khu vực quầy trưng bày và bị nghi đã mang tài sản ra ngoài. Bị cáo phủ nhận việc chiếm đoạt; camera có một đoạn bị che khuất.',
+     details:'camera chỉ ghi được một phần dáng người; sổ tiếp nhận đồ cũ ghi một tên gần giống tên bị cáo; người bán hàng nhớ đã thấy bị cáo ở gần quầy nhưng không nhìn rõ hành động lấy điện thoại.',
+     evidence:['Bản trích xuất camera cho thấy một người rời quầy vào gần thời điểm tài sản được phát hiện mất, nhưng khuôn mặt không rõ.','Phiếu định giá sơ bộ xác định giá trị điện thoại khoảng 8,6 triệu đồng.','Lời khai của nhân viên cửa tiệm xác nhận bị cáo có mặt, nhưng chưa khẳng định trực tiếp thấy việc chiếm đoạt.'],
+     trueStory:'Nếu có tội: bị cáo đã lấy điện thoại khi nhân viên quay đi và sau đó tìm cách bán lại. Nếu không có tội: người lấy là một khách khác; bị cáo chỉ đứng cạnh quầy để hỏi giá.',
+     guiltyAnswers:['Tôi có cầm chiếc điện thoại lên để xem, nhưng tôi không đồng ý rằng mình đã lấy trộm. Camera không nhìn rõ mặt tôi.','Tôi hiểu vì sao mình bị nghi ngờ, nhưng có mặt ở quầy không có nghĩa là tôi đã chiếm đoạt tài sản.'], innocentAnswers:['Tôi không lấy chiếc điện thoại đó. Tôi đã hỏi giá rồi rời đi, và tôi mong Tòa kiểm tra kỹ người xuất hiện ở cuối đoạn camera.','Tôi chỉ đứng gần quầy một lúc. Tôi không biết chiếc điện thoại biến mất vào thời điểm nào.'],
+     victim:'Tôi để điện thoại trên quầy lúc thanh toán. Khi quay lại thì không thấy nữa. Tôi không tận mắt nhìn thấy ai cầm đi.', witness:'Tôi nhớ người bị cáo buộc có mặt ở cửa tiệm, nhưng khu vực đó đông và tôi không nhìn rõ bàn tay của người ấy.',
+     prosecutor:'VKS cho rằng sự có mặt đúng thời điểm, dữ liệu camera và lời khai cần được đánh giá trong mối liên hệ tổng thể. Tuy nhiên, việc nhận diện chưa rõ cần được giải đáp tại phiên tòa.', defense:'Việc có mặt tại hiện trường không tự động chứng minh hành vi chiếm đoạt. Camera không nhận diện rõ và nhân chứng không thấy trực tiếp; đề nghị HĐXX kiểm tra độ tin cậy của từng mắt xích chứng cứ.', truthProof:'Dữ kiện phân biệt nằm trong camera ở khoảng thời gian 18 giây sau khi bị hại rời quầy và giao dịch tại cửa hàng đồ cũ; hồ sơ công khai chỉ mới có bản trích xuất một phần.'},
+    {key:'fraud', title:'Khoản đặt cọc không trở lại', charge:'Lừa đảo chiếm đoạt tài sản', article:'Điều 174 BLHS', amount:12400000, amountText:'12,4 triệu đồng', minSentence:0.5, maxSentence:2,
+     summary:'Bị hại chuyển khoản đặt cọc để mua một máy tính đã qua sử dụng. Sau khi nhận tiền, người nhận hẹn giao hàng nhiều lần rồi ngừng liên lạc. Bị cáo đứng tên tài khoản nhận tiền nhưng cho rằng đó là giao dịch thật và có người khác liên quan.',
+     details:'tin nhắn có lời hẹn giao hàng; tài khoản nhận tiền đứng tên bị cáo; chưa tìm thấy biên nhận bàn giao hàng; lịch sử trò chuyện có một khoảng bị xóa.',
+     evidence:['Sao kê ngân hàng xác nhận khoản tiền 12,4 triệu đồng được chuyển vào tài khoản đứng tên bị cáo.','Ảnh chụp tin nhắn thể hiện việc thỏa thuận mua bán và nhiều lần dời lịch giao hàng.','Chưa có vật chứng xác nhận máy tính đã được đặt mua; dữ liệu trò chuyện chưa được trích xuất đầy đủ từ thiết bị gốc.'],
+     trueStory:'Nếu có tội: người nhận tiền không có máy tính và dùng thông tin sai để khiến bị hại chuyển khoản. Nếu không có tội: giao dịch ban đầu là thật nhưng bên giao hàng thứ ba đã thất hứa và tiền bị chuyển tiếp.',
+     guiltyAnswers:['Tôi nhận được khoản tiền đó, nhưng tôi không đồng ý rằng ngay từ đầu tôi đã có ý định chiếm đoạt. Tôi có liên hệ với một người cung cấp hàng.','Đúng là tôi đã hẹn lại nhiều lần. Tôi cần giải thích rõ việc tiền được chuyển đi đâu và vì sao hàng không được giao.'], innocentAnswers:['Tôi nhận tiền theo thỏa thuận mua bán. Tôi đã chuyển phần lớn cho bên cung cấp, nhưng việc giao hàng không diễn ra như dự tính.','Tôi không phủ nhận tài khoản là của mình. Tôi đề nghị kiểm tra toàn bộ lịch sử chuyển tiền để xác định ý định và vai trò của tôi.'],
+     victim:'Tôi tin lời quảng cáo và đã chuyển tiền. Sau nhiều lần hẹn, tôi không nhận được hàng cũng không lấy lại được tiền.', witness:'Tôi từng thấy họ trao đổi về việc mua máy tính, nhưng tôi không có mặt khi hai bên thỏa thuận toàn bộ điều kiện.',
+     prosecutor:'Dòng tiền vào tài khoản bị cáo, nội dung trao đổi và việc không giao hàng là các dấu hiệu quan trọng. Cần làm rõ liệu gian dối đã có từ trước thời điểm nhận tiền hay không.', defense:'Không giao hàng không đương nhiên đồng nghĩa với lừa đảo. Cần phân biệt tranh chấp giao dịch với ý định chiếm đoạt có trước; hãy đối chiếu dòng tiền và thông tin người cung cấp.', truthProof:'Dữ kiện phân biệt là tin nhắn gốc giữa bị cáo và người cung cấp hàng cùng giao dịch chuyển tiền sau khi nhận cọc; bản ảnh chụp hiện tại không phản ánh đầy đủ chuỗi sự kiện.'},
+    {key:'injury', title:'Cuộc cãi vã ở bãi xe', charge:'Cố ý gây thương tích', article:'Điều 134 BLHS', amount:0, amountText:'thiệt hại sức khỏe đang được xác định', minSentence:0.6, maxSentence:2,
+     summary:'Sau tranh cãi tại bãi xe, người bị hại bị thương và phải đi khám. Bị cáo thừa nhận có lời qua tiếng lại nhưng nói mình chỉ tìm cách rời khỏi nơi xảy ra sự việc. Hai người làm chứng có lời khai không hoàn toàn trùng khớp.',
+     details:'kết luận giám định ghi nhận tỷ lệ tổn thương cơ thể 15%; camera bị khuất một phần; hai nhân chứng đứng ở hai vị trí khác nhau.',
+     evidence:['Kết luận giám định xác định tỷ lệ tổn thương cơ thể là 15%.','Camera cho thấy hai người tranh cãi và có tiếp xúc, nhưng góc quay không ghi trọn diễn biến.','Hai nhân chứng không thống nhất về việc ai là người có hành động trước.'],
+     trueStory:'Nếu có tội: bị cáo chủ động dùng sức mạnh gây thương tích sau khi tranh cãi. Nếu không có tội: bị cáo đẩy tay để thoát khỏi việc bị giữ lại; thương tích phát sinh trong lúc hai người mất thăng bằng.',
+     guiltyAnswers:['Tôi có mặt và có tranh cãi. Tôi không đồng ý với cách mô tả toàn bộ sự việc trong cáo trạng; xin hỏi lại từng thời điểm cụ thể.','Tôi hiểu người kia bị thương, nhưng tôi muốn Tòa xem camera và lời khai của cả hai nhân chứng trước khi kết luận ý định của tôi.'], innocentAnswers:['Tôi có cố gắng rời đi khi bị giữ lại. Tôi không chủ động đánh người như cáo buộc.','Tôi tiếc vì người kia bị thương, nhưng mong Tòa phân biệt giữa việc có tiếp xúc và ý định cố ý gây thương tích.'],
+     victim:'Tôi bị thương sau cuộc cãi vã và phải đi khám. Tôi nhớ có va chạm mạnh, nhưng lúc đó mọi việc diễn ra nhanh.', witness:'Tôi nghe thấy tiếng tranh cãi. Từ vị trí đứng, tôi chỉ nhìn thấy một phần diễn biến nên không thể xác nhận hết mọi động tác.',
+     prosecutor:'Kết luận giám định chứng minh hậu quả sức khỏe, nhưng cần đặt trong quan hệ với hành vi cụ thể và lỗi của người bị cáo buộc. Lời khai cùng video cần được xem xét đối chiếu.', defense:'Hậu quả thương tích chưa tự nó chứng minh ai gây ra và lỗi ở mức nào. Các nhân chứng khác nhau, còn video bị khuất; đề nghị không suy diễn vượt quá chứng cứ.', truthProof:'Dữ kiện phân biệt là đoạn camera ngoài phạm vi góc quay công khai và trình tự chuyển động ngay trước lúc người bị hại ngã; lời khai ban đầu có một chi tiết cần được đối chất.'},
+    {key:'traffic', title:'Va chạm tại ngã tư', charge:'Vi phạm quy định về tham gia giao thông đường bộ', article:'Điều 260 BLHS', amount:0, amountText:'thiệt hại về người và tài sản cần đối chiếu', minSentence:0.5, maxSentence:2,
+     summary:'Một vụ va chạm xảy ra tại ngã tư vào giờ đông xe, khiến người đi xe máy bị thương và phương tiện hư hỏng. Bị cáo là người điều khiển một trong hai phương tiện. Các bên không thống nhất về tín hiệu giao thông và tốc độ trước va chạm.',
+     details:'camera giao lộ lệch góc; sơ đồ hiện trường có vết phanh; lời khai của người đi đường về tín hiệu đèn chưa thống nhất.',
+     evidence:['Biên bản khám nghiệm hiện trường ghi nhận vị trí phương tiện sau va chạm và dấu vết phanh.','Bản trích xuất camera không hiển thị rõ cụm đèn tín hiệu ở thời điểm quyết định.','Hồ sơ y tế và báo giá sửa chữa ghi nhận hậu quả sau va chạm; cần xác định mối liên hệ với từng hành vi.'],
+     trueStory:'Nếu có tội: bị cáo vi phạm quy tắc giao thông và vi phạm đó trực tiếp góp phần gây hậu quả. Nếu không có tội: dữ liệu đầy đủ cho thấy phương tiện còn lại đi sai tín hiệu, còn bị cáo không có khả năng tránh va chạm.',
+     guiltyAnswers:['Tôi có điều khiển xe tại thời điểm đó. Tôi không thể khẳng định tín hiệu đèn nếu không xem lại đoạn ghi hình đầy đủ.','Tôi đã phanh khi thấy nguy hiểm. Tôi muốn Tòa làm rõ khoảng cách, tốc độ và tín hiệu tại giao lộ.'], innocentAnswers:['Tôi đi qua theo tín hiệu mà tôi quan sát được. Tôi không cho rằng mình có thể tránh được va chạm khi phương tiện kia xuất hiện.','Tôi rất tiếc về hậu quả. Tuy nhiên, cần xem dữ liệu hiện trường trước khi quy kết lỗi cho riêng tôi.'],
+     victim:'Tôi chỉ nhớ đã đến gần ngã tư rồi xảy ra va chạm. Sau đó tôi được đưa đi khám, không quan sát được toàn bộ tín hiệu đèn.', witness:'Tôi ở gần giao lộ nhưng bị một xe lớn che tầm nhìn trong vài giây. Tôi không chắc mình nhìn thấy tín hiệu đúng thời điểm va chạm.',
+     prosecutor:'Hồ sơ thể hiện có hậu quả và cần làm rõ vi phạm quy tắc giao thông cụ thể nào gây ra hậu quả đó. Đề nghị đối chiếu hiện trường, camera và dữ liệu phương tiện.', defense:'Không thể chỉ dựa vào việc bị cáo là người điều khiển phương tiện để kết tội. Cần xác định lỗi, quy tắc bị vi phạm và quan hệ nhân quả với hậu quả.', truthProof:'Dữ kiện phân biệt là dữ liệu tín hiệu đèn và thời điểm bắt đầu phanh từ hệ thống giao lộ; bản trích xuất đang xem tại phiên tòa thiếu vài giây ở điểm mấu chốt.'},
+    {key:'damage', title:'Cánh cửa bị phá hỏng', charge:'Hủy hoại hoặc cố ý làm hư hỏng tài sản', article:'Điều 178 BLHS', amount:22600000, amountText:'22,6 triệu đồng', minSentence:0.3, maxSentence:1.2,
+     summary:'Sau bất đồng về tiền thuê mặt bằng, cánh cửa kính và bảng hiệu của cửa tiệm bị hư hỏng. Bị cáo từng có mặt trong khu vực vào buổi tối đó nhưng phủ nhận việc làm hỏng tài sản. Một hàng xóm nghe thấy tiếng động nhưng không nhìn rõ người gây ra.',
+     details:'đơn vị sửa chữa báo giá 22,6 triệu đồng; camera ghi người mặc áo tối màu; hàng xóm nghe tiếng động và nhìn thấy một người rời đi.',
+     evidence:['Báo giá sửa chữa của đơn vị thi công ghi tổng thiệt hại dự kiến 22,6 triệu đồng; cần đối chiếu chứng từ và giá trị tài sản thực tế.','Camera ghi nhận một người mặc áo tối màu rời hiện trường, nhưng không xác định chắc chắn danh tính.','Bị cáo và chủ cửa tiệm từng tranh chấp tiền thuê; đây có thể là bối cảnh nhưng không tự chứng minh hành vi.'],
+     trueStory:'Nếu có tội: bị cáo quay lại sau tranh cãi và cố ý làm hỏng cửa, bảng hiệu. Nếu không có tội: người khác gây hư hỏng; mâu thuẫn thuê mặt bằng khiến bị cáo bị nghi ngờ.',
+     guiltyAnswers:['Tôi từng tranh cãi với chủ tiệm, nhưng điều đó không có nghĩa tôi đã phá tài sản. Tôi muốn biết căn cứ nhận dạng cụ thể là gì.','Tôi có đi qua khu vực đó vào tối hôm ấy. Tôi không đồng ý rằng camera đã xác định được mặt tôi.'], innocentAnswers:['Tôi không làm hỏng cửa kính. Mâu thuẫn thuê mặt bằng có thật, nhưng không thể thay thế chứng cứ về hành vi.','Tôi đề nghị xác minh thời gian camera, quần áo và lời khai người hàng xóm trước khi kết luận.'],
+     victim:'Tôi phát hiện cửa và bảng hiệu bị hư hỏng vào sáng hôm sau. Trước đó tôi có tranh cãi với bị cáo về tiền thuê.', witness:'Tôi nghe tiếng động lớn rồi thấy một người rời khỏi khu vực. Tôi không nhìn rõ mặt người đó nên không thể nhận dạng chắc chắn.',
+     prosecutor:'Thiệt hại tài sản và bối cảnh mâu thuẫn cần được kiểm chứng. Điểm quan trọng là chứng cứ nhận dạng bị cáo có đủ vững chắc và có chứng minh ý thức cố ý hay không.', defense:'Động cơ suy đoán và trang phục tương tự không đủ để xác định người thực hiện. Cần chứng minh hành vi, lỗi cố ý và giá trị thiệt hại theo quy định.', truthProof:'Dữ kiện phân biệt là dấu vết tại hiện trường và đoạn camera từ một góc phụ; hồ sơ công khai hiện chưa có kết luận nhận dạng rõ ràng.'},
+    {key:'trust', title:'Khoản tiền được giao quản lý', charge:'Lạm dụng tín nhiệm chiếm đoạt tài sản', article:'Điều 175 BLHS', amount:19800000, amountText:'19,8 triệu đồng', minSentence:0.5, maxSentence:1.8,
+     summary:'Bị cáo được giao quản lý một khoản tiền để thanh toán cho nhà cung cấp. Sau đó, khoản tiền không đến nơi nhận và chưa được hoàn trả đầy đủ. Bị cáo nói đã dùng tiền cho giao dịch liên quan, trong khi bên giao tiền cho rằng bị cáo cố tình chiếm giữ.',
+     details:'biên nhận bàn giao tiền; sao kê chỉ thể hiện một phần đường đi của tiền; nhà cung cấp phủ nhận đã nhận đủ khoản thanh toán.',
+     evidence:['Biên nhận thể hiện bị cáo đã nhận quản lý khoản tiền 19,8 triệu đồng cho mục đích thanh toán.','Sao kê tài khoản cho thấy tiền được rút/chuyển thành nhiều giao dịch, nhưng chưa truy nguyên đầy đủ người nhận cuối cùng.','Nhà cung cấp xác nhận chưa nhận đủ tiền; bị cáo trình bày có chi phí phát sinh được thỏa thuận bằng lời nói.'],
+     trueStory:'Nếu có tội: bị cáo đã nhận tài sản hợp pháp rồi cố ý sử dụng trái mục đích và né tránh nghĩa vụ hoàn trả. Nếu không có tội: một phần tiền đã được chi cho công việc chung theo thỏa thuận, nhưng việc quyết toán thất lạc.',
+     guiltyAnswers:['Tôi xác nhận đã nhận tiền để thanh toán. Tôi cần giải thích từng khoản sau đó; tôi không đồng ý rằng toàn bộ số tiền bị chiếm đoạt.','Tôi chưa hoàn trả đủ. Nhưng xin Tòa xem thỏa thuận ban đầu và các khoản chi trước khi kết luận tôi có ý định chiếm giữ hay không.'], innocentAnswers:['Tôi nhận tiền theo nhiệm vụ công việc. Một phần đã được sử dụng cho giao dịch liên quan, nhưng chứng từ đối soát chưa đầy đủ.', 'Tôi không phủ nhận nghĩa vụ quyết toán, nhưng tôi không cố ý chiếm đoạt tài sản. Xin đối chiếu người nhận tiền cuối cùng.'],
+     victim:'Tôi giao tiền để thanh toán đúng mục đích. Sau đó nhà cung cấp báo chưa nhận đủ và tôi không nhận được bảng quyết toán đầy đủ.', witness:'Tôi biết có việc giao nhận tiền nhưng không tham gia mọi giao dịch sau đó. Tôi chỉ xác nhận được phần việc mình trực tiếp chứng kiến.',
+     prosecutor:'Việc nhận tài sản ban đầu có thể là hợp pháp; cần xem hành vi sau khi nhận, mục đích sử dụng, việc hoàn trả và biểu hiện né tránh nghĩa vụ.', defense:'Chậm quyết toán hoặc tranh chấp về chi phí chưa tự chứng minh ý định chiếm đoạt. Dòng tiền và thỏa thuận cần được xác minh toàn diện.', truthProof:'Dữ kiện phân biệt là chuỗi giao dịch sau khi nhận tiền và thỏa thuận về chi phí phát sinh; hồ sơ công khai còn thiếu một chứng từ gốc.'}
+  ];
+  const stages = [
+    ['Chuẩn bị & khai mạc','Thư ký báo cáo, kiểm tra căn cước và giải thích quyền'],
+    ['Xét hỏi','Chủ tọa đặt câu hỏi tự do; các bên làm rõ chứng cứ'],
+    ['Tranh luận','Luận tội, bào chữa, đối đáp và lời sau cùng'],
+    ['Nghị án & tuyên án','Hội thẩm nêu ý kiến, Chủ tọa ra phán quyết']
+  ];
+  const $ = id => document.getElementById(id);
+  let state;
+  function safeLoad(){ try { const s=JSON.parse(localStorage.getItem(STORE)||'null'); if(s&&s.case&&Array.isArray(s.events)) return s; } catch(e){} return null; }
+  function persist(){ try { localStorage.setItem(STORE,JSON.stringify(state)); } catch(e){} }
+  function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function person(){ return `${pick(namesA)} ${pick(namesB)} ${pick(namesC)}`; }
+  function money(n){ return new Intl.NumberFormat('vi-VN').format(Math.max(0,Number(n)||0))+' đồng'; }
+  function init(){
+    state=safeLoad();
+    if(!state){ state={caseNo:1,stage:0,trust:100,played:0,case:null,events:[],asked:0,stageActions:{},juryCalled:false, verdict:null, hiddenOpen:false, signatures:[]}; newCase(true); }
+    renderAll();
+  }
+  function newCase(first=false){
+    const recent=state.signatures||[];
+    let t=pick(templates); let tries=0; let signature='';
+    do {
+      t=pick(templates);
+      const variation=Math.floor(Math.random()*999999);
+      signature=t.key+'-'+variation;
+      tries++;
+    } while(recent.includes(signature)&&tries<20);
+    const defendant=person(); let victim=person(); while(victim===defendant) victim=person();
+    let witness1=person(); while([defendant,victim].includes(witness1)) witness1=person();
+    let witness2=person(); while([defendant,victim,witness1].includes(witness2)) witness2=person();
+    const guilty=Math.random()<(t.key==='traffic'?0.60:0.57);
+    const loc=pick(places); const time=pick(times);
+    const attitude=pick(personality);
+    const scenarioTitle=pick(titleVariants[t.key]||[t.title]);
+    const instance={
+      no:state.caseNo, id:`HS-${new Date().getFullYear()}-${String(state.caseNo).padStart(3,'0')}`,
+      title:`${scenarioTitle} — hồ sơ ${String(state.caseNo).padStart(3,'0')}`, charge:t.charge, article:t.article, key:t.key, amount:t.amount, amountText:t.amount?new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(t.amount/1000000)+' triệu đồng':t.amountText,
+      summary:t.summary, details:t.details, evidence:t.evidence, trueStory:t.trueStory, guilty, minSentence:t.minSentence,maxSentence:t.maxSentence,
+      defendant,victim,witness1,witness2,location:loc,time,attitude, template:t, truthProof:t.truthProof,
+      personaGuilty:pick(t.guiltyAnswers), personaInnocent:pick(t.innocentAnswers), witnessAnswer:t.witness, victimAnswer:t.victim,
+      prosecutorText:t.prosecutor, defenseText:t.defense, signature
+    };
+    state.case=instance; state.stage=0; state.events=[]; state.asked=0; state.stageActions={}; state.juryCalled=false; state.verdict=null; state.hiddenOpen=false;
+    state.signatures=[...recent,signature].slice(-30);
+    state.events.push({speaker:'Thư ký phiên tòa',type:'system',text:`Kính mời mọi người trong phòng xử án đứng dậy. Hội đồng xét xử vào phòng xử. Thư ký báo cáo: hồ sơ ${instance.id} đã được chuẩn bị; danh sách người được triệu tập đã cập nhật. Chủ tọa điều hành phiên tòa.`});
+    state.events.push({speaker:'Hệ thống hồ sơ',type:'system',text:`Vụ án mới được tạo từ kịch bản ${t.key.toUpperCase()}. Các tình tiết quyết định và kết quả được giữ kín đến sau khi tuyên án.`});
+    if(first){ state.played=state.played||0; state.trust=Number.isFinite(state.trust)?state.trust:100; }
+    persist();
+  }
+  function participants(){ const c=state.case; return [
+    {name:'Thẩm phán — Chủ tọa',role:'judge',icon:'⚖',desc:'Bạn trực tiếp điều hành, xét hỏi, nghị án và tuyên án.'},
+    {name:'Hội thẩm nhân dân 1',role:'juror1',icon:'▤',desc:'Đưa ra ý kiến độc lập khi nghị án.'},
+    {name:'Hội thẩm nhân dân 2',role:'juror2',icon:'▤',desc:'Đánh giá chứng cứ và các tình tiết của vụ án.'},
+    {name:'Thư ký tòa án',role:'clerk',icon:'✎',desc:'Báo cáo danh sách, ghi nhận diễn biến phiên tòa.'},
+    {name:'Kiểm sát viên',role:'prosecutor',icon:'§',desc:'Đại diện công tố, trình bày cáo buộc và luận tội.'},
+    {name:'Luật sư bào chữa',role:'defense',icon:'⚖',desc:'Bảo vệ quyền và lợi ích hợp pháp của bị cáo.'},
+    {name:c.defendant,role:'accused',icon:'●',desc:`Bị cáo · ${c.template.charge}`},
+    {name:c.victim,role:'victim',icon:'◉',desc:'Người bị hại · yêu cầu được làm rõ sự việc.'},
+    {name:c.witness1,role:'witness1',icon:'○',desc:'Người làm chứng thứ nhất · lời khai có giới hạn quan sát.'},
+    {name:c.witness2,role:'witness2',icon:'○',desc:'Người làm chứng thứ hai · có thể bổ sung hoặc mâu thuẫn.'},
+    {name:'Luật sư bảo vệ người bị hại',role:'victimLawyer',icon:'§',desc:'Trình bày quan điểm về thiệt hại và quyền lợi của bị hại.'}
+  ]; }
+  function renderAll(){ renderSidebar(); renderDocket(); renderSummary(); renderRoles(); renderPhase(); renderTranscript(); $('top-case-number').textContent=`HỒ SƠ #${String(state.case.no).padStart(3,'0')}`; $('trust-score').textContent=state.trust; $('cases-count').textContent=state.played; }
+  function renderSidebar(){ $('step-list').innerHTML=stages.map((s,i)=>`<div class="step ${i===state.stage?'current':''} ${i<state.stage?'done':''}"><div class="step-num">${i<state.stage?'✓':String(i+1).padStart(2,'0')}</div><div><div class="step-title">${esc(s[0])}</div><div class="step-desc">${esc(s[1])}</div></div></div>`).join(''); }
+  function renderDocket(){ const c=state.case; $('case-docket').innerHTML=`<div class="docket-top"><div><div class="eyebrow">Hồ sơ xét xử hình sự · ${esc(c.id)}</div><div class="case-title">${esc(c.title)}</div><div class="case-id">Tòa án mô phỏng · Phiên tòa số ${String(c.no).padStart(3,'0')} · Ngày xét xử: 17/10/2026</div></div><div class="case-stamp">HỒ SƠ<strong>${String(c.no).padStart(3,'0')}</strong>ĐANG XÉT XỬ</div></div><div class="case-grid"><div class="meta-card"><div class="meta-label">Tội danh trong cáo trạng</div><div class="meta-value">${esc(c.charge)}</div></div><div class="meta-card"><div class="meta-label">Điều luật dự kiến</div><div class="meta-value">${esc(c.article)}</div></div><div class="meta-card"><div class="meta-label">Bị cáo</div><div class="meta-value">${esc(c.defendant)}</div></div><div class="meta-card"><div class="meta-label">Người bị hại</div><div class="meta-value">${esc(c.victim)}</div></div><div class="meta-card"><div class="meta-label">Thời điểm xảy ra sự việc</div><div class="meta-value">${esc(c.time)}</div></div><div class="meta-card"><div class="meta-label">Địa điểm</div><div class="meta-value">${esc(c.location)}</div></div></div>`; }
+  function renderSummary(){ const c=state.case; $('case-summary').textContent=c.summary; $('evidence-count').textContent=`${c.evidence.length} nhóm tài liệu công khai`; $('evidence-list').innerHTML=c.evidence.map((e,i)=>`<div class="evidence-item"><div class="evidence-index">${String(i+1).padStart(2,'0')}</div><div>${esc(e)}</div></div>`).join(''); }
+  function renderRoles(){ $('role-grid').innerHTML=participants().map(p=>`<div class="role-card"><div class="role-icon">${p.icon}</div><div class="role-name">${esc(p.name)}</div><div class="role-desc">${esc(p.desc)}</div></div>`).join(''); }
+  function roleOptions(){ return participants().filter(p=>['accused','victim','witness1','witness2','prosecutor','defense','victimLawyer','juror1','juror2','clerk'].includes(p.role)); }
+  function phaseShell(title,sub,body,footerHelp,footerButton,footerId='advance-btn'){ $('phase-panel').innerHTML=`<div class="phase-header"><div><div class="phase-kicker">Giai đoạn ${state.stage+1} / 4</div><h2>${title}</h2></div><div class="phase-count">${esc(sub)}</div></div><div class="phase-content">${body}</div><div class="step-footer"><div class="footer-help">${footerHelp}</div>${footerButton?`<button class="btn primary" id="${footerId}" type="button">${footerButton}</button>`:''}</div>`; }
+  function renderPhase(){
+    if(state.verdict){ renderResult(); return; }
+    if(state.stage===0){
+      const names=participants().map(p=>`<strong>${esc(p.name)}</strong> — ${esc(p.desc)}`).join('<br>');
+      const body=`<div class="clerk-box"><strong>THƯ KÝ BÁO CÁO:</strong><br>“Kính thưa Hội đồng xét xử, những người được triệu tập trong hồ sơ ${esc(state.case.id)} đã có mặt theo danh sách mô phỏng dưới đây. Tài liệu đã được sắp xếp; đề nghị Chủ tọa kiểm tra căn cước, phổ biến quyền và nghĩa vụ của những người tham gia tố tụng trước khi bắt đầu xét xử.”</div><h3 class="section-title">Danh sách người tham gia <span>${participants().length} vai trò trong mô phỏng</span></h3><div class="small-note" style="line-height:1.9">${names}</div><hr class="divider"><div class="field"><label for="judge-command">Lời điều hành / thủ tục do Chủ tọa nhập</label><textarea id="judge-command" placeholder="Ví dụ: Tuyên bố khai mạc phiên tòa; yêu cầu thư ký kiểm tra căn cước từng người; giải thích quyền và nghĩa vụ..."></textarea><div class="field-help">Bạn tự viết thủ tục và câu lệnh. Bấm “Ghi nhận lời điều hành” để đưa vào biên bản.</div></div><div class="button-row"><button class="btn primary" id="record-command" type="button">Ghi nhận lời điều hành</button><button class="btn" id="clerk-attendance" type="button">Yêu cầu Thư ký báo cáo lại</button></div>`;
+      phaseShell('Chuẩn bị khai mạc & triệu tập','CHUẨN BỊ PHIÊN TÒA',body,'Chỉ chuyển sang xét hỏi sau khi bạn đã thực hiện lời điều hành tối thiểu một lần.','Chuyển sang xét hỏi');
+      $('record-command').onclick=()=>recordJudgeCommand('judge-command');
+      $('clerk-attendance').onclick=()=>{addEvent('Thư ký tòa án','system',`Báo cáo bổ sung: các vai trò hiển thị trong danh sách là thành phần của kịch bản. Với phiên tòa thật, tình trạng triệu tập và vắng mặt phải được xác minh theo hồ sơ cụ thể.`);renderTranscript();};
+      $('advance-btn').onclick=()=>{ if(!(state.stageActions.opening||0)){toast('Hãy ghi nhận ít nhất một lời điều hành của Chủ tọa trước khi chuyển bước.');return;} advanceStage();};
+    } else if(state.stage===1){
+      const opts=roleOptions().map(p=>`<option value="${esc(p.role)}">${esc(p.name)} — ${esc(p.role==='accused'?'Bị cáo':p.role==='victim'?'Người bị hại':p.role.startsWith('witness')?'Người làm chứng':p.role==='prosecutor'?'Kiểm sát viên':p.role==='defense'?'Luật sư bào chữa':p.role==='victimLawyer'?'Luật sư bảo vệ người bị hại':p.role.startsWith('juror')?'Hội thẩm nhân dân':'Thư ký')}</option>`).join('');
+      const body=`<div class="clerk-box">Kiểm sát viên công bố cáo trạng về hành vi bị cáo buộc: <strong>${esc(state.case.charge)}</strong> (${esc(state.case.article)}). Cáo buộc chỉ là nội dung cần được kiểm tra tại phiên tòa; Chủ tọa cần đánh giá chứng cứ đã công bố và lời khai, không coi cáo trạng là kết luận có tội.</div><div class="field"><label for="question-target">Người được hỏi</label><select id="question-target">${opts}</select><div class="field-help">Chọn người sẽ trả lời. Bạn tự nhập câu hỏi, không có đáp án A/B/C.</div></div><div class="field"><label for="judge-question">Câu hỏi của Chủ tọa</label><textarea id="judge-question" placeholder="Gõ câu hỏi của bạn theo bất kỳ cách nào: hỏi về thời gian, động cơ, chứng cứ, mâu thuẫn lời khai, dòng tiền, khả năng nhận dạng..."></textarea></div><div class="button-row"><button class="btn primary" id="ask-btn" type="button">Đặt câu hỏi & ghi lời khai</button><button class="btn" id="prosecution-read" type="button">Yêu cầu Kiểm sát viên làm rõ cáo trạng</button></div><hr class="divider"><h3 class="section-title">Diễn biến xét hỏi gần đây <span>câu hỏi tự do</span></h3><div id="qa-recent" class="transcript"></div>`;
+      phaseShell('Thủ tục xét hỏi','XÉT HỎI',body,'Bạn có thể hỏi nhiều lần và lần lượt gọi những người khác nhau. Giai đoạn chưa kết thúc cho đến khi bạn bấm chuyển bước.','Chuyển sang tranh luận');
+      $('ask-btn').onclick=askCharacter;
+      $('prosecution-read').onclick=()=>{ addEvent('Kiểm sát viên','prosecution',`Tôi đề nghị tập trung làm rõ các dấu hiệu về hành vi, lỗi, giá trị/hậu quả và mối liên hệ giữa bị cáo với chứng cứ. Các chi tiết còn chưa rõ phải được kiểm tra bằng xét hỏi và đối chất, không nên suy luận chỉ từ một tài liệu riêng lẻ.`);renderTranscript();renderRecentQA();};
+      $('advance-btn').onclick=()=>{if(state.asked<1){toast('Hãy thực hiện ít nhất một câu hỏi trước khi chuyển sang tranh luận.');return;}advanceStage();};
+      renderRecentQA();
+    } else if(state.stage===2){
+      const body=`<div class="action-grid"><div class="action-card"><h4>Kiểm sát viên · Luận tội</h4><p>Trình bày nhận định về chứng cứ, yếu tố cấu thành và đề nghị hướng xử lý.</p><button class="btn dark" id="call-prosecutor" type="button">Mời luận tội</button></div><div class="action-card"><h4>Luật sư bào chữa</h4><p>Phân tích điểm chưa chắc chắn, tình tiết có lợi và yêu cầu của bên bào chữa.</p><button class="btn dark" id="call-defense" type="button">Mời bào chữa</button></div><div class="action-card"><h4>Bị cáo · Lời sau cùng</h4><p>Ghi nhận lời nói sau cùng trước khi Hội đồng xét xử nghị án.</p><button class="btn dark" id="call-lastword" type="button">Mời nói lời sau cùng</button></div></div><div class="field"><label for="judge-debate-command">Lệnh điều hành / nhận định bổ sung của Chủ tọa</label><textarea id="judge-debate-command" placeholder="Nhập yêu cầu đối đáp, yêu cầu làm rõ một luận điểm hoặc ghi chú điều hành..."></textarea></div><button class="btn" id="record-debate-command" type="button">Ghi nhận lệnh</button><hr class="divider"><h3 class="section-title">Biên bản tranh luận <span>các bên được phản hồi</span></h3><div id="debate-recent" class="transcript"></div>`;
+      phaseShell('Tranh luận tại phiên tòa','TRANH LUẬN',body,'Để mô phỏng đủ trình tự, hãy nghe luận tội, bào chữa và lời sau cùng trước khi chuyển nghị án.','Chuyển sang nghị án');
+      $('call-prosecutor').onclick=()=>argument('prosecutor'); $('call-defense').onclick=()=>argument('defense'); $('call-lastword').onclick=lastWords;
+      $('record-debate-command').onclick=()=>recordJudgeCommand('judge-debate-command','debate');
+      $('advance-btn').onclick=()=>{if(!state.stageActions.prosecutor||!state.stageActions.defense||!state.stageActions.lastword){toast('Hãy lần lượt mời Kiểm sát viên luận tội, luật sư bào chữa và bị cáo nói lời sau cùng.');return;}advanceStage();};
+      renderRecentDebate();
+    } else {
+      const c=state.case;
+      const body=`<div class="clerk-box"><strong>HĐXX vào nghị án.</strong><br>Hội thẩm nhân dân phải đánh giá độc lập các chứng cứ đã kiểm tra tại phiên tòa. Quan điểm dưới đây chỉ là mô phỏng; quyết định cuối cùng do bạn nhập.</div><div class="button-row"><button class="btn dark" id="jury-opinions" type="button">Mời hai Hội thẩm nêu ý kiến</button></div><div id="jury-outlet" style="margin-top:13px"></div><hr class="divider"><h3 class="section-title">Dự thảo phán quyết của Chủ tọa <span>cần tự quyết định</span></h3><div class="verdict-grid"><div class="field"><label for="verdict-result">Kết luận về trách nhiệm hình sự</label><select id="verdict-result"><option value="guilty">Tuyên có tội</option><option value="innocent">Tuyên không phạm tội</option></select></div><div class="field"><label for="verdict-charge">Tội danh khi tuyên án</label><select id="verdict-charge"><option value="${esc(c.key)}">${esc(c.charge)} (${esc(c.article)})</option><option value="other">Tội danh khác / cần xác định lại</option><option value="none">Không áp dụng tội danh</option></select></div></div><div class="form-row triple"><div class="field"><label for="sentence-years">Mức tù (năm)</label><input id="sentence-years" type="number" min="0" max="40" step="0.1" value="0"></div><div class="field"><label for="fine-amount">Tiền phạt (đồng)</label><input id="fine-amount" type="number" min="0" step="100000" value="0"></div><div class="field"><label for="compensation">Bồi thường (đồng)</label><input id="compensation" type="number" min="0" step="100000" value="${c.amount||0}"></div></div><div class="field"><label for="verdict-reason">Nhận định và căn cứ phán quyết</label><textarea id="verdict-reason" placeholder="Nêu chứng cứ nào được chấp nhận/loại trừ, đánh giá độ tin cậy lời khai, lỗi, tình tiết tăng nặng/giảm nhẹ và căn cứ quyết định..."></textarea></div><div class="field"><label for="verdict-other">Nội dung khác (án phí, vật chứng, quyền kháng cáo — nếu phù hợp kịch bản)</label><input id="verdict-other" placeholder="Ghi ngắn gọn hoặc để trống"></div><div class="button-row"><button class="btn primary" id="pronounce-btn" type="button">Tuyên án & chấm điểm</button></div><p class="field-help" style="margin-top:10px">Điểm số là rubric mô phỏng, không thể thay thế việc đối chiếu toàn văn BLHS, BLTTHS và tình tiết thực tế. Không cần đồng ý với ý kiến của Hội thẩm; bạn là người ra phán quyết cuối cùng trong game.</p>`;
+      phaseShell('Nghị án & tuyên án','NGHỊ ÁN',body,'Bạn tự nhập kết luận, tội danh, hình phạt và lý do. Chỉ khi bấm “Tuyên án” thì hồ sơ mới kết thúc.','');
+      $('jury-opinions').onclick=showJury;
+      $('pronounce-btn').onclick=pronounce;
+    }
+  }
+  function addEvent(speaker,type,text){ state.events.push({speaker,type,text}); persist(); }
+  function recordJudgeCommand(id,actionKey='opening'){
+    const val=$(id)?.value.trim(); if(!val){toast('Hãy nhập lời điều hành trước khi ghi nhận.');return;}
+    addEvent('Thẩm phán — Chủ tọa','judge',val);
+    state.stageActions[actionKey]=(state.stageActions[actionKey]||0)+1; persist(); renderTranscript(); renderPhase(); toast('Đã ghi nhận vào biên bản.');
+  }
+  function advanceStage(){ if(state.stage<3){state.stage++;persist();renderAll();document.getElementById('phase-panel').scrollIntoView({behavior:'smooth',block:'start'});} }
+  function questionTopic(q){ const s=q.toLowerCase();
+    if(/giờ|thời gian|khi nào|lúc nào|bao lâu|mấy giờ|ngày nào/.test(s)) return 'time';
+    if(/ở đâu|địa điểm|đứng đâu|vị trí|chỗ nào/.test(s)) return 'place';
+    if(/tiền|chuyển khoản|tài khoản|giá trị|bao nhiêu|bồi thường|đền/.test(s)) return 'money';
+    if(/camera|video|ghi hình|hình ảnh|nhận dạng|nhận diện|nhìn thấy|thấy rõ/.test(s)) return 'vision';
+    if(/tại sao|vì sao|động cơ|mục đích|ý định|lý do/.test(s)) return 'motive';
+    if(/ai|người nào|người đó|đối tượng|bị cáo|làm việc gì|đã làm gì|hành vi/.test(s)) return 'action';
+    if(/chứng cứ|tài liệu|vật chứng|bằng chứng|sao kê|tin nhắn|biên nhận/.test(s)) return 'evidence';
+    if(/mâu thuẫn|lời khai trước|khác với|không khớp|lúc trước|đối chất/.test(s)) return 'contradiction';
+    if(/thương tích|bị thương|sức khỏe|thiệt hại|hư hỏng/.test(s)) return 'harm';
+    if(/có tội|nhận tội|thừa nhận|phủ nhận|khai thật|gian dối|lấy trộm|chiếm đoạt/.test(s)) return 'guilt';
+    return 'general';
+  }
+  function responseFor(role,q){
+    const c=state.case,t=c.template,topic=questionTopic(q); let prefix='';
+    if(role==='accused'){
+      let base=c.guilty?c.personaGuilty:c.personaInnocent;
+      if(topic==='time') prefix=`Tôi nhớ sự việc vào ${c.time}, nhưng tôi không thể xác nhận từng phút nếu không xem tài liệu. `;
+      else if(topic==='place') prefix=`Tôi có mặt tại ${c.location}. Vị trí của tôi và điều tôi thực sự nhìn thấy cần được phân biệt rõ. `;
+      else if(topic==='money') prefix=c.guilty?`Tôi biết hồ sơ đang nói đến ${c.amountText}. Tôi đề nghị đối chiếu chứng từ gốc để làm rõ khoản đó. `:`Tôi đề nghị kiểm tra toàn bộ chứng từ liên quan ${c.amountText}, vì tài liệu đang có chưa phản ánh hết diễn biến. `;
+      else if(topic==='vision'||topic==='evidence') prefix=`Tôi đã nghe phần công bố về chứng cứ. Theo tôi, chi tiết cần xem kỹ là: ${c.details} `;
+      else if(topic==='motive') prefix=c.guilty?'Tôi không muốn tự suy đoán về động cơ; xin để Tòa đối chiếu việc tôi làm với các tài liệu khách quan. ':'Tôi không có lý do như cáo buộc nêu. Tôi mong Tòa dựa vào hành vi cụ thể chứ không chỉ hoàn cảnh hay mâu thuẫn trước đó. ';
+      else if(topic==='harm') prefix=`Tôi hiểu có hậu quả được nêu trong hồ sơ. Cần làm rõ quan hệ giữa hậu quả ấy với hành vi bị cáo buộc. `;
+      else if(topic==='contradiction') prefix=`Tôi nhận thấy lời khai có điểm chưa thống nhất. Tôi không thể giải thích thay cho người khác; xin đối chiếu đúng thời điểm và câu chữ trong biên bản. `;
+      else if(topic==='guilt') prefix=base+' ';
+      else prefix=`Tôi nghe rõ câu hỏi của Chủ tọa. Tôi xin trả lời theo những gì mình trực tiếp biết, còn điểm nào không nhớ chính xác thì tôi không muốn đoán. `;
+      return prefix + (topic==='guilt'?'':`${base} ${c.attitude.charAt(0).toUpperCase()+c.attitude.slice(1)}.`);
+    }
+    if(role==='victim'){
+      if(topic==='time') return `Theo trí nhớ của tôi, sự việc liên quan đến ${c.time}. Tôi không dám khẳng định chi tiết nằm ngoài điều mình trực tiếp chứng kiến.`;
+      if(topic==='place') return `Sự việc xảy ra tại ${c.location}. Tôi có thể xác định khu vực, nhưng không phải mọi góc trong đó đều nằm trong tầm nhìn của tôi.`;
+      if(topic==='money') return `Khoản được nhắc trong hồ sơ là khoảng ${c.amountText}. Tôi đề nghị đối chiếu chứng từ gốc và khoản đã được hoàn trả (nếu có).`;
+      if(topic==='vision') return c.victimAnswer+` Tôi không muốn nhận dạng ai nếu bản thân không nhìn rõ.`;
+      if(topic==='evidence') return `Tài liệu tôi cung cấp là phần tôi đang có. Tôi mong Tòa kiểm tra nguồn gốc và tính đầy đủ, chứ không chỉ dựa vào bản chụp rời.`;
+      if(topic==='harm') return `${c.victimAnswer} Tôi đề nghị giải quyết hậu quả thực tế trên cơ sở giấy tờ và chi phí hợp lệ.`;
+      if(topic==='contradiction') return `Tôi có thể nhớ khác người khác ở một vài chi tiết do tình huống diễn ra nhanh. Tôi sẵn sàng trả lời lại từng mốc thời gian để Tòa đối chiếu.`;
+      return `${c.victimAnswer} Tôi không thể kết luận thay Hội đồng xét xử; tôi mong sự việc được làm rõ và quyền lợi hợp pháp của tôi được xem xét.`;
+    }
+    if(role==='witness1'||role==='witness2'){
+      const detail=role==='witness1'?c.witnessAnswer:`Tôi có góc quan sát khác với người làm chứng thứ nhất. ${c.details}`;
+      if(topic==='time') return `Tôi chỉ nhớ khoảng ${c.time}. Tôi không nhìn đồng hồ liên tục nên có thể sai lệch vài phút.`;
+      if(topic==='place') return `${detail} Tôi đứng ở vị trí khác, nên không thể xác nhận mọi diễn biến trong khu vực.`;
+      if(topic==='vision') return `${detail} Tôi không thể nhận dạng chắc chắn nếu hình ảnh không rõ hoặc tầm nhìn bị che.`;
+      if(topic==='contradiction') return `Nếu lời khai trước khác, xin cho tôi xem đúng nội dung biên bản để xác định tôi đã nói gì. Trí nhớ của tôi có giới hạn và tôi không muốn đoán.`;
+      if(topic==='evidence') return `Tôi chỉ có thể xác nhận điều mình trực tiếp nhìn/nghe thấy. Tôi không trực tiếp kiểm tra tài liệu kỹ thuật hay sao kê trong hồ sơ.`;
+      if(topic==='money') return `Tôi không trực tiếp kiểm đếm hay kiểm tra mọi giao dịch liên quan ${c.amountText}; phần đó nên căn cứ chứng từ gốc.`;
+      if(topic==='motive') return `Tôi không biết chắc suy nghĩ bên trong của người liên quan. Tôi chỉ có thể trình bày những gì mình quan sát được.`;
+      return `${detail} Tôi sẽ không khẳng định quá điều mình trực tiếp chứng kiến.`;
+    }
+    if(role==='prosecutor'){
+      if(topic==='evidence'||topic==='vision') return `Quan điểm công tố là phải đánh giá chứng cứ trong tổng thể: ${c.details} Tôi đề nghị làm rõ những điểm còn thiếu qua xét hỏi, không bỏ qua tình tiết gỡ tội.`;
+      if(topic==='motive'||topic==='guilt') return `Cần làm rõ nhận thức và ý chí của bị cáo tại thời điểm xảy ra sự việc. Cáo buộc hiện tại là ${c.charge}; kết luận phải dựa trên các yếu tố được chứng minh tại phiên tòa.`;
+      if(topic==='money') return `Đối với ${c.amountText}, cần xác định giá trị bằng tài liệu hợp lệ, người quản lý/nhận tài sản và đường đi của tài sản.`;
+      return `Tôi đề nghị xem xét cả lời khai, chứng cứ khách quan và mâu thuẫn giữa các nguồn. Phần chưa được chứng minh cần được tiếp tục làm rõ trước khi kết luận.`;
+    }
+    if(role==='defense'){
+      if(topic==='vision'||topic==='evidence') return `Phía bào chữa cho rằng cần kiểm tra nguồn gốc, tính toàn vẹn và khả năng nhận diện của tài liệu. ${c.details} Không nên suy ra sự có tội chỉ từ việc có mặt hoặc có mâu thuẫn.`;
+      if(topic==='money') return `Cần kiểm tra đầy đủ chứng từ, khoản thực tế, người nhận cuối cùng và phần đã hoàn trả. Tranh chấp/thiệt hại không tự chứng minh mọi yếu tố của tội bị cáo buộc.`;
+      if(topic==='motive') return `Động cơ giả định không thay thế việc chứng minh hành vi và lỗi. Cần đánh giá cả giả thuyết buộc tội lẫn tình tiết có lợi cho bị cáo.`;
+      if(topic==='contradiction') return `Đề nghị cho đối chiếu lời khai ban đầu và lời khai tại phiên tòa, làm rõ vì sao khác nhau và mâu thuẫn đó có ảnh hưởng đến vấn đề cốt lõi hay không.`;
+      return `Tôi đề nghị giữ nguyên tắc suy đoán vô tội: trách nhiệm chứng minh thuộc cơ quan có thẩm quyền; mọi nghi ngờ không thể làm rõ phải được xử lý theo pháp luật.`;
+    }
+    if(role==='victimLawyer') return `Tôi đề nghị HĐXX ghi nhận thiệt hại thực tế và xem xét yêu cầu dân sự trên chứng từ hợp lệ. Đồng thời, trách nhiệm hình sự phải được xác định từ chứng cứ đã kiểm tra công khai tại phiên tòa.`;
+    if(role==='juror1'||role==='juror2') return juryText(role);
+    if(role==='clerk') return `Thưa Chủ tọa, tôi có thể báo cáo tình trạng giấy tờ và việc triệu tập theo hồ sơ mô phỏng. Đánh giá chứng cứ và kết luận vụ án thuộc thẩm quyền của Hội đồng xét xử.`;
+    return 'Người được hỏi đề nghị làm rõ lại câu hỏi và chỉ trả lời trong phạm vi hiểu biết trực tiếp.';
+  }
+  function askCharacter(){ const q=$('judge-question').value.trim(); if(!q){toast('Hãy nhập câu hỏi tự do của Chủ tọa.');return;} const role=$('question-target').value; const p=participants().find(x=>x.role===role); addEvent('Thẩm phán — Chủ tọa','judge',`Hỏi ${p?.name||role}: ${q}`); addEvent(p?.name||role,role==='accused'?'accused':role==='defense'?'defense':role==='prosecutor'?'prosecution':'system',responseFor(role,q)); state.asked++; state.stageActions.question=(state.stageActions.question||0)+1; persist(); $('judge-question').value=''; renderTranscript(); renderRecentQA(); }
+  function renderRecentQA(){ const el=$('qa-recent'); if(!el)return; const items=state.events.filter(e=>e.type==='judge'&&e.text.startsWith('Hỏi ')||['accused','victim'].includes(e.type)); el.innerHTML=items.slice(-8).map(e=>`<div class="transcript-entry ${esc(e.type)}"><div class="transcript-speaker">${esc(e.speaker)}</div>${esc(e.text)}</div>`).join('')||'<div class="empty-state">Chưa có câu hỏi. Chủ tọa có thể hỏi theo ý mình, không bị giới hạn ở câu mẫu.</div>'; }
+  function argument(which){ const c=state.case; if(which==='prosecutor'){
+      const confidence=c.guilty?'các tài liệu có thể hỗ trợ cáo buộc, nhưng những điểm về nhận dạng/ý định vẫn phải được giải đáp':'các tài liệu hiện tại còn khoảng trống đáng kể và cần được kiểm chứng; không thể bỏ qua chứng cứ có lợi cho bị cáo';
+      addEvent('Kiểm sát viên','prosecution',`LUẬN TỘI MÔ PHỎNG: Hành vi bị cáo buộc là ${c.charge} (${c.article}). Từ những tài liệu đã công bố, công tố cho rằng ${confidence}. Trọng tâm cần đánh giá là hành vi cụ thể, lỗi, hậu quả/giá trị tài sản và quan hệ nhân quả. Đề nghị HĐXX chỉ sử dụng tài liệu đã được kiểm tra tại phiên tòa, đánh giá tình tiết tăng nặng, giảm nhẹ và trách nhiệm dân sự khi đủ căn cứ. Mức đề nghị trong kịch bản này không được tự động coi là mức hình phạt theo luật thật.`); state.stageActions.prosecutor=true;
+    } else {
+      addEvent('Luật sư bào chữa','defense',`BÀO CHỮA MÔ PHỎNG: Phía bào chữa đề nghị HĐXX không đồng nhất nghi ngờ với chứng minh. Cần xem xét kỹ ${c.details} và kiểm tra nguồn gốc, tính toàn vẹn, độ tin cậy của tài liệu. Bị cáo có quyền trình bày và phản bác; những tình tiết chưa được làm sáng tỏ không nên bị suy diễn bất lợi. Nếu vẫn còn nghi ngờ hợp lý về yếu tố cốt lõi, đề nghị đánh giá theo nguyên tắc suy đoán vô tội. Nếu có căn cứ xác định trách nhiệm thì vẫn cần cá thể hóa trách nhiệm và xem xét yếu tố giảm nhẹ hợp pháp.`); state.stageActions.defense=true;
+    }
+    persist();renderTranscript();renderRecentDebate();toast(which==='prosecutor'?'Đã ghi nhận luận tội mô phỏng.':'Đã ghi nhận phần bào chữa mô phỏng.');
+  }
+  function lastWords(){ if(state.stageActions.lastword){toast('Lời sau cùng đã được ghi nhận.');return;} const c=state.case; const text=c.guilty?'Tôi hiểu việc này đã gây ra hậu quả. Tôi xin HĐXX xem xét toàn bộ hoàn cảnh, mức độ tham gia và những gì tôi đã khắc phục.':'Tôi mong HĐXX xem xét kỹ chứng cứ khách quan và không kết luận chỉ vì tôi có mặt hoặc có liên quan đến hoàn cảnh. Tôi vẫn khẳng định mình không thực hiện hành vi bị cáo buộc.'; addEvent(c.defendant,'accused',`LỜI NÓI SAU CÙNG: “${text}”`); state.stageActions.lastword=true; persist();renderTranscript();renderRecentDebate(); }
+  function renderRecentDebate(){ const el=$('debate-recent'); if(!el)return; const items=state.events.filter(e=>['prosecution','defense','accused','judge'].includes(e.type)); el.innerHTML=items.slice(-10).map(e=>`<div class="transcript-entry ${esc(e.type)}"><div class="transcript-speaker">${esc(e.speaker)}</div>${esc(e.text)}</div>`).join('')||'<div class="empty-state">Chưa có tranh luận được ghi nhận.</div>'; }
+  function juryText(which){ const c=state.case; if(which==='juror1') return c.guilty?'Hội thẩm 1: Tôi nghiêng về việc có căn cứ buộc tội, nhưng đề nghị Chủ tọa kiểm tra thêm mối liên hệ giữa dữ liệu khách quan và bị cáo; chỉ lời khai về việc có mặt chưa đủ nếu thiếu nhận dạng đáng tin cậy.':'Hội thẩm 1: Tôi cho rằng chứng cứ hiện công khai còn thiếu một mắt xích quan trọng. Cần cân nhắc nghi ngờ về nhận dạng/ý định và không dùng động cơ giả định để thay thế chứng minh.'; return c.guilty?'Hội thẩm 2: Tôi thấy hướng buộc tội có cơ sở nếu các tài liệu được xác thực và mâu thuẫn được giải thích. Cần cân nhắc kỹ độ tin cậy nhân chứng, tình tiết giảm nhẹ và hậu quả thực tế.':'Hội thẩm 2: Tôi chưa thấy đủ căn cứ chắc chắn để gắn hành vi cho bị cáo nếu chứng cứ nhận diện và quan hệ nhân quả còn bỏ ngỏ. Tôi đề nghị xem xét cả giả thuyết khác phù hợp với tài liệu.'; }
+  function showJury(){ if(state.juryCalled){toast('Ý kiến hội thẩm đã được ghi nhận.');return;} addEvent('Hội thẩm nhân dân 1','system',juryText('juror1')); addEvent('Hội thẩm nhân dân 2','system',juryText('juror2')); state.juryCalled=true;persist();renderTranscript();$('jury-outlet').innerHTML=`<div class="transcript">${state.events.slice(-2).map(e=>`<div class="transcript-entry system"><div class="transcript-speaker">${esc(e.speaker)}</div>${esc(e.text)}</div>`).join('')}</div>`; }
+  function pronounce(){
+    const result=$('verdict-result').value; const charge=$('verdict-charge').value; const years=Math.max(0,Number($('sentence-years').value)||0); const fine=Math.max(0,Number($('fine-amount').value)||0); const compensation=Math.max(0,Number($('compensation').value)||0); const reason=$('verdict-reason').value.trim(); const other=$('verdict-other').value.trim();
+    const v={result,charge,years,fine,compensation,reason,other,date:new Date().toISOString()};
+    const c=state.case; const truthMatch=(result==='guilty')===c.guilty; let legal=truthMatch?42:8; let humanity=50; let reasons=[];
+    if(result==='guilty'&&charge===c.key){legal+=25;} else if(result==='innocent'&&charge==='none'){legal+=20;} else {legal+=6;}
+    const appropriateYears=result==='innocent'?years===0:years>=c.minSentence&&years<=c.maxSentence;
+    legal+=appropriateYears?18:7;
+    const compDiff=Math.abs(compensation-c.amount); if(c.amount===0?compensation===0:compDiff<=Math.max(1000000,c.amount*.15)){legal+=10;humanity+=22;} else {legal+=4;humanity+=10;}
+    if(/chứng cứ|lời khai|camera|giám định|mâu thuẫn|suy đoán vô tội|giảm nhẹ|tăng nặng|lỗi|nhân quả|không đủ căn cứ|nghi ngờ/i.test(reason)){legal+=5;humanity+=12;} else {humanity+=5;}
+    if(reason.length>90){legal+=5;humanity+=8;} else if(reason.length<15){legal-=5;humanity-=5;}
+    if(result==='innocent'&&!c.guilty){reasons.push('Phán quyết phù hợp với sự thật ẩn trong kịch bản: hồ sơ buộc tội không phản ánh đúng người thực hiện hoặc yếu tố cốt lõi.');} else if(result==='guilty'&&c.guilty){reasons.push('Phán quyết phù hợp với sự thật ẩn trong kịch bản, với điều kiện chứng cứ được đánh giá hợp pháp và đủ sức chứng minh.');} else if(result==='guilty'&&!c.guilty){reasons.push('Kịch bản cho biết bị cáo không thực hiện hành vi cốt lõi; kết tội trong tình huống này làm tăng nguy cơ kết án oan.');} else {reasons.push('Kịch bản cho biết có hành vi phạm tội; tuyên không phạm tội trong tình huống này có nguy cơ bỏ lọt trách nhiệm.');}
+    if(!appropriateYears) reasons.push('Mức tù bạn nhập lệch khoảng tham khảo nội bộ của kịch bản; đây không phải khẳng định về khung hình phạt pháp luật.');
+    if(c.amount>0&&compDiff>Math.max(1000000,c.amount*.15)) reasons.push('Khoản bồi thường khác đáng kể với tổn thất ẩn trong kịch bản; cần nêu căn cứ chấp nhận hoặc bác yêu cầu dân sự.');
+    legal=Math.max(0,Math.min(100,Math.round(legal))); humanity=Math.max(0,Math.min(100,Math.round(humanity+(truthMatch?12:0)-(result==='guilty'&&!c.guilty?18:0))));
+    const oldTrust=state.trust; state.trust=Math.max(0,Math.min(100,oldTrust+(legal>=80?3:legal>=60?0:-5))); state.played++; state.verdict={...v,legal,humanity,truthMatch,oldTrust,newTrust:state.trust,reasons}; persist(); addEvent('Thẩm phán — Chủ tọa','judge',`TUYÊN ÁN: ${result==='guilty'?'Tuyên bị cáo có tội': 'Tuyên bị cáo không phạm tội'}. Tội danh lựa chọn: ${charge==='none'?'Không áp dụng tội danh':charge==='other'?'Tội danh khác/cần xác định lại':c.charge}. Mức tù: ${years} năm. Phạt tiền: ${money(fine)}. Bồi thường: ${money(compensation)}. Nhận định: ${reason||'Không nhập nhận định.'}${other?' Nội dung khác: '+other:''}`); renderAll(); $('phase-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function renderResult(){
+    const c=state.case,v=state.verdict; const resultTitle=v.result==='guilty'?'Tuyên có tội':'Tuyên không phạm tội';
+    const scoreCard=(value,label,desc)=>`<div class="metric"><div class="metric-label">${label}</div><div class="metric-value">${value}%</div><div class="metric-desc">${desc}</div><div class="meter"><span style="width:${value}%"></span></div></div>`;
+    const html=`<div class="result-top"><div class="eyebrow">Kết thúc hồ sơ ${esc(c.id)}</div><div class="result-title">Đã tuyên án · ${resultTitle}</div><div class="result-sub">${esc(c.title)} · ${esc(c.defendant)} · Bản đánh giá nội bộ của trò chơi</div></div><div class="result-body"><div class="result-metrics">${scoreCard(v.legal,'Phù hợp pháp lý mô phỏng','Chỉ là rubric nội bộ; cần đối chiếu luật hiện hành và hồ sơ thật.')}${scoreCard(v.humanity,'Thấu tình đạt lý','Ước tính dựa trên tính nhất quán, quyền lợi các bên và lý do bạn nêu.')}${scoreCard(state.trust,'Uy tín thẩm phán','Điểm tích lũy thay đổi theo kết quả mô phỏng.')}</div><div class="assessment"><strong>Nhận xét hệ thống</strong><br>${v.reasons.map(esc).join('<br>')}<br><br><strong>Phán quyết bạn đã ghi:</strong> ${esc(resultTitle)}; mức tù ${v.years} năm; phạt tiền ${esc(money(v.fine))}; bồi thường ${esc(money(v.compensation))}.<br><strong>Lý do của Chủ tọa:</strong> ${esc(v.reason||'Không ghi nhận lý do.')}</div><div class="button-row" style="margin-top:16px"><button class="btn" id="reveal-hidden" type="button">${state.hiddenOpen?'Ẩn sự thật ẩn':'Mở niêm phong sự thật ẩn'}</button><button class="btn primary" id="next-case-btn" type="button">Mở vụ án tiếp theo →</button><button class="btn" id="result-export-btn" type="button">Xuất biên bản vụ án này</button></div><div id="hidden-facts" class="hidden-facts ${state.hiddenOpen?'open':''}"><h4>NIÊM PHONG ĐÃ MỞ · Chỉ dùng để học sau phiên tòa</h4><p><strong>Kết quả nội tại của kịch bản:</strong> ${c.guilty?'Bị cáo thực hiện hành vi cốt lõi trong kịch bản.':'Bị cáo không thực hiện hành vi cốt lõi trong kịch bản.'}</p><p><strong>Tình tiết quyết định:</strong> ${esc(c.trueStory)}</p><p><strong>Chi tiết cần xác minh:</strong> ${esc(c.truthProof)}</p><p><strong>Chấm điểm:</strong> phán quyết ${v.truthMatch?'phù hợp':'không phù hợp'} với sự thật ẩn. Điểm không phải đánh giá pháp lý chính thức và không xem xét mọi khả năng tố tụng như một chuyên gia pháp luật.</p></div></div>`;
+    $('phase-panel').innerHTML=html;
+    $('reveal-hidden').onclick=()=>{state.hiddenOpen=!state.hiddenOpen;persist();renderPhase();};
+    $('next-case-btn').onclick=()=>{state.caseNo++;newCase();renderAll();window.scrollTo({top:0,behavior:'smooth'});toast('Đã mở một vụ án mới, độc lập với hồ sơ trước.');};
+    $('result-export-btn').onclick=exportTranscript;
+  }
+  function renderTranscript(){ const el=$('transcript'); if(!el)return; if(!state.events.length){el.innerHTML='<div class="empty-state">Chưa có diễn biến nào được ghi nhận.</div>';return;} el.innerHTML=state.events.map(e=>`<div class="transcript-entry ${esc(e.type)}"><div class="transcript-speaker">${esc(e.speaker)}</div>${esc(e.text)}</div>`).join(''); el.scrollTop=el.scrollHeight; }
+  function exportTranscript(){ const c=state.case; const lines=[`THẨM PHÁN TỐI CAO — PHÁN QUYẾT CỦA BẠN`,`Hồ sơ: ${c.id}`,`Tên vụ án: ${c.title}`,`Tội danh trong cáo trạng: ${c.charge} (${c.article})`,`Bị cáo: ${c.defendant}`,`Người bị hại: ${c.victim}`,`Giai đoạn: ${stages[state.stage]?.[0]||'Đã kết thúc'}`,``,`DIỄN BIẾN:`]; state.events.forEach(e=>lines.push(`[${e.speaker}] ${e.text}`,'')); if(state.verdict){const v=state.verdict; lines.push('PHÁN QUYẾT:',v.result==='guilty'?'Tuyên có tội':'Tuyên không phạm tội',`Mức tù: ${v.years} năm`,`Phạt tiền: ${money(v.fine)}`,`Bồi thường: ${money(v.compensation)}`,`Nhận định: ${v.reason}`,`Điểm phù hợp pháp lý mô phỏng: ${v.legal}%`,`Điểm thấu tình đạt lý: ${v.humanity}%`,`Lưu ý: Điểm game không phải ý kiến pháp lý chính thức.`);} const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`Bien-ban-${c.id}.txt`; document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast('Đã tạo tệp biên bản để lưu trên thiết bị.'); }
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),2800);}
+  $('export-btn').addEventListener('click',exportTranscript);
+  $('clear-log-btn').addEventListener('click',()=>{if(confirm('Xóa toàn bộ nội dung biên bản của hồ sơ hiện tại?')){state.events=[];persist();renderTranscript();toast('Đã xóa biên bản hiện tại.');}});
+  init();
+})();
+</script>
+</body>
+</html>
